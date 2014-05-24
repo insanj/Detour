@@ -1,9 +1,16 @@
 #import <UIKit/UIKit.h>
+#ifdef DEBUG
+	#define DRLog(fmt, ...) NSLog((@"[Detour] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#else
+	#define DRLog(fmt, ...) 
+#endif
 
 struct SBGestureContextRef {};
 struct XXStruct_XgRpiA {};
 
 @interface SBGestureRecognizer : NSObject
+@property(assign, nonatomic) unsigned types;
+
 - (BOOL)shouldReceiveTouches;
 - (void)touchesBegan:(SBGestureContextRef)began;
 - (void)touchesCancelled:(SBGestureContextRef)cancelled;
@@ -33,8 +40,8 @@ struct XXStruct_XgRpiA {};
 
 // Offender: <SBOffscreenSwipeGestureRecognizer: 0x12d335200; state = Cancelled; type = <Show Notifications>; shouldReceiveTouches = YES>
 - (BOOL)firstTouchQualifies:(const XXStruct_XgRpiA *)qualifies {
-	if ([self.description rangeOfString:@"Show Notifications"].location != NSNotFound) {
-		NSLog(@"[Detour] Caught %@ trying to allow Notification Center access, diverting...", self);
+	if (self.types & 1 << 3) { // Thanks for the tip, @a1anyip!
+		DRLog(@"[Detour] Caught %@ trying to allow Notification Center access, diverting...", self);
 		return NO;
 	}
 
